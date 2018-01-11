@@ -5,28 +5,19 @@ export PATH=$PATH:.
 #Brew
 export PATH=/usr/local/sbin:$PATH
 export PATH=/usr/local/bin:$PATH
+export PATH=/opt/local/bin:$PATH
 
-#MacPorts
-## NOTE: switched to HomeBrew :)
-## Having MacPorts first instead of after $PATH causes a GitK error
-## http://stackoverflow.com/questions/2629292/starting-gitk-error
-#export PATH=$PATH:/opt/local/bin
-#export PATH=$PATH:/opt/local/sbin
-#export MANPATH=$MANPATH:/opt/local/share/man
+# Ruby
+# eval "$(chef shell-init zsh)"
 
-#Dev frameworks
-#export PATH=$PATH:$ANT_HOME/bin
-export PATH=$PATH:$M2_HOME/bin
 
-#Chef
-export PATH=$PATH:/opt/chef/bin:/opt/chef/embedded/bin
+# GO
+#export PATH=$PATH:/usr/local/opt/go/libexec/bin
 
-#Zend
-export PATH=$PATH:/usr/local/zend/bin
-export PATH=$PATH:/usr/local/zend/mysql/bin
+# The next line updates PATH for the Google Cloud SDK.
+#source "/Users/$(whoami)/Downloads/google-cloud-sdk/path.zsh.inc"
 
-# NPM
-export PATH=$PATH:/usr/local/share/npm/bin
+# The next line enables shell command completion for gcloud.
+#source "/Users/$(whoami)/Downloads/google-cloud-sdk/completion.zsh.inc"
 
-export PATH=$PATH:~/.nvm/v0.10.22/bin
-RBENV_ROOT=/usr/local/var/rbenv
+eval "$(rbenv init -)"

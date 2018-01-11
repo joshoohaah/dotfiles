@@ -1,98 +1,8 @@
 #!/bin/sh
 
-################################################
-#http environment variables
-###############################################
-
-# export HTTP_PROXY_TEMP=http://http-proxy.ha.health.ge.com:88/
-# #export HTTP_PROXY_TEMP=http://pitc-cin.cloud.health.ge.com:80/
-# export HTTPS_PROXY_TEMP=$HTTP_PROXY_TEMP
-# export NO_PROXY_TEMP=localhost,127.0.0.1,127.0.0.0,10.0.0.0,10.0.2.15,.ge.com
-# export HTTPS_PROXY=$HTTPS_PROXY_TEMP
-# export HTTP_PROXY=$HTTP_PROXY_TEMP
-# export http_proxy=$HTTP_PROXY_TEMP
-# export https_proxy=$HTTPS_PROXY_TEMP
-# export VAGRANT_HTTP_PROXY=$HTTP_PROXY_TEMP
-# export VAGRANT_HTTPS_PROXY=$HTTPS_PROXY_TEMP
-# export VAGRANT_FTP_PROXY=$HTTP_PROXY_TEMP
-# export VAGRANT_NO_PROXY=$NO_PROXY_TEMP
-#
-# export VPN_HTTP_PROXY_TEMP=$HTTP_PROXY_TEMP
-# export VPN_HTTPS_PROXY_TEMP=$HTTP_PROXY_TEMP
-# export VPN_NO_PROXY_TEMP=$NO_PROXY_TEMP
-##########################################
-# Proxy Fun
-#########################################
-# Define our default proxy
-export proxy_url=http://3.166.220.15:3128
-export proxy_url2=http://cinproxy.glb.comfin.ge.com:80
-export proxy_url3=http://iss-americas-pitc-cincinnatiz.proxy.corporate.ge.co
-export proxy_url4=http://http-proxy.us.money.ge.com
-export proxy_url5=http://127.0.0.1:31114
-export proxy_url6=http://pitc-cin.cloud.health.ge.com:80/
-export proxy_url7=http://http-proxy.ha.health.ge.com:88/
-export proxy_url8=http://cis-americas-pitc-cinciz.proxy.corporate.ge.com:80
-export proxy_url9=http://proxy-src.research.ge.com:8080
-export proxy_url10=http://PITC-Zscaler-Americas-Cincinnati3PR.proxy.corporate.ge.com:80
-
-
-# These aliases are used to check the proxy and turn it on and off
-alias proxy="env |grep _proxy"
-alias proxyon_archops="export http_proxy=$proxy_url; export https_proxy=$proxy_url;proxy"
-alias proxyon_cin="export http_proxy=$proxy_url2; export https_proxy=$proxy_url2;proxy"
-alias proxyon_cin2="export http_proxy=$proxy_url3; export https_proxy=$proxy_url3;proxy"
-alias proxyon_money="export http_proxy=$proxy_url4; export https_proxy=$proxy_url4;proxy"
-alias proxyon_myapps="export http_proxy=$proxy_url5; export https_proxy=$proxy_url5;proxy"
-alias proxyon_pitc="export http_proxy=$proxy_url6; export https_proxy=$proxy_url6;proxy"
-alias proxyon_health="export http_proxy=$proxy_url7; export https_proxy=$proxy_url7;proxy"
-alias proxyon_cis="export http_proxy=$proxy_url8; export https_proxy=$proxy_url8;proxy"
-alias proxyon_research="export http_proxy=$proxy_url9; export https_proxy=$proxy_url9;proxy"
-alias proxyon_pitcCIS="export http_proxy=$proxy_url10; export https_proxy=$proxy_url10;proxy"
-
-
-alias proxyoff="unset http_proxy; unset https_proxy; unset ftp_proxy; unset"
-export no_proxy="localhost,127.0.0.1,.ge.com,3.,10,*.ge.com,10.0.2.2"
-
-# default one to start is health proxy
-proxyon_health
-
-#########################################
-# to find files that are hidden
-#########################################
-alias showFiles='defaults write com.apple.finder AppleShowAllFiles YES; killall Finder /System/Library/CoreServices/Finder.app'
-alias hideFiles='defaults write com.apple.finder AppleShowAllFiles NO; killall Finder /System/Library/CoreServices/Finder.app'
-
-######################
-# Turn proxies on/off
-#####################
-alias proxyon="source $AWS_TOOLS_PATH/proxy-switch.sh on"
-alias proxyon_myapps="source $AWS_TOOLS_PATH/proxy-switch.sh myapps"
-alias proxyon_pitc="source $AWS_TOOLS_PATH/proxy-switch.sh pitc"
-alias proxyon_health="source $AWS_TOOLS_PATH/proxy-switch.sh health"
-alias proxyoff="source $AWS_TOOLS_PATH/proxy-switch.sh off"
-alias vpn_proxyon="source $AWS_TOOLS_PATH/proxy-switch.sh vpn_on"
-#########################################
-# Connectivity
-#alias ssh.host ='ssh user@host.net'
-
-#########################################
-# Commands to run apps
-#########################################
-# Commands to change dirs
-alias to.temp='cd ${MYTEMP}'
-alias to.downloads='cd ${MYDOWNLOADS}'
-alias to.dropbox='cd ~/Dropbox'
-alias to.docs='cd ${MYDOCUMENTS}'
-alias to.code='cd ${MYCODE}'
-alias to.scratch='cd ${MYSCRATCH}'
-alias to.devapps='cd ${MYDEVAPPS}'
-
 #################################
 # Simple Program Name Shortening
 alias g=git
-alias gp='git push'
-alias gs='git status'
-alias gc='git commit'
 alias v=vagrant
 alias vp='vagrant provision'
 alias vd='vagrant destroy -f'
@@ -102,7 +12,7 @@ alias kc='kitchen converge'
 alias kl='kitchen login'
 alias klist='chef exec kitchen list'
 alias ball='berks install && berks upload'
-alias cook='foodcritic -C `pwd` && rubocop -D -S'
+alias cook='foodcritic -C `pwd` && cookstyle -E-S'
 alias cook_fix='rubocop --auto-correct'
 
 #####################################
@@ -111,8 +21,16 @@ alias cook_fix='rubocop --auto-correct'
 alias brew-cask-refresh='brew cask list | xargs brew cask install --force'
 alias brew-refresh='brew update && brew upgrade'
 
+
 #############################
 # Utilities
+
+# Lock the screen (when going AFK)
+alias afk="/System/Library/CoreServices/Menu\ Extras/User.menu/Contents/Resources/CGSession -suspend"
+
+# buzzphrase commit
+# used for my presentation decks when I have nothing to say about the commit
+alias bpc='git add -A . && git cam "$(buzzphrase 2)" && git push'
 
 # recursive dos2unix in current directory
 alias dos2lf='dos2unix `find ./ -type f`'
@@ -120,30 +38,39 @@ alias dos2lf='dos2unix `find ./ -type f`'
 # Flush the DNS on Mac
 alias dnsflush='dscacheutil -flushcache'
 
-# Copy and paste and prune the usless newline
-alias pbcopynn='tr -d "\n" | pbcopy'
+# Empty the Trash on all mounted volumes and the main HDD.
+# Also, clear Apple’s System Logs to improve shell startup speed.
+# Finally, clear download history from quarantine. https://mths.be/bum
+alias emptytrash="sudo rm -rfv /Volumes/*/.Trashes; sudo rm -rfv ~/.Trash; sudo rm -rfv /private/var/log/asl/*.asl; sqlite3 ~/Library/Preferences/com.apple.LaunchServices.QuarantineEventsV* 'delete from LSQuarantineEvent'"
 
-# Set the extended MacOS attributes on a file such that Quicklook will open it as text
-alias qltext='xattr -wx com.apple.FinderInfo "54 45 58 54 21 52 63 68 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00" $1'
-#alias qltext2='osascript -e tell application "Finder" to set file type of ((POSIX file "$1") as alias) to "TEXT"'
+# Files being opened
+alias files.open='sudo fs_usage -e -f filesystem|grep -v CACHE_HIT|grep -v grep|grep open'
+# Files used, anywhere on the filesystem
+alias files.usage='sudo fs_usage -e -f filesystem|grep -v CACHE_HIT|grep -v grep'
+# Files in use in the Users directory
+alias files.usage.user='sudo fs_usage -e -f filesystem|grep -v CACHE_HIT|grep -v grep|grep Users'
 
-# Git Scribe Commands
-alias gsgp='git scribe gen pdf && open output/book.pdf'
-alias gsgh='git scribe gen html && open output/book.html'
+alias game.seek='txt="";for i in {1..20};do txt=$txt"$i. ";done;txt=$txt" Ready or not, here I come";say $txt'
+
+# Git Tools
+# assumes git-up is installed (gem install git-up)
+# switches to 'develop' branch, updates all local branches (nicely using git-up), removes all local branches already merged into 'develop'
+alias gitdev='git checkout develop; git-up; git branch --merged develop | grep -v "\* develop" | xargs -n 1 git branch -d; git branch;'
+
+# IP addresses
+alias ip="dig +short myip.opendns.com @resolver1.opendns.com"
+alias iplocal="ipconfig getifaddr en0"
+alias ips="ifconfig -a | grep -o 'inet6\? \(addr:\)\?\s\?\(\(\([0-9]\+\.\)\{3\}[0-9]\+\)\|[a-fA-F0-9:]\+\)' | awk '{ sub(/inet6? (addr:)? ?/, \"\"); print }'"
+
+# Show active network interfaces
+alias ifactive="ifconfig | pcregrep -M -o '^[^\t:]+:([^\n]|\n\t)*status: active'"
 
 # Show network connections
 # Often useful to prefix with SUDO to see more system level network usage
 alias network.connections='lsof -l -i +L -R -V'
 alias network.established='lsof -l -i +L -R -V | grep ESTABLISHED'
-alias network.internalip="ifconfig en0 | egrep -o '([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)'"
 alias network.externalip='curl -s http://checkip.dyndns.org/ | sed "s/[a-zA-Z<>/ :]//g"'
-
-# Files used, anywhere on the filesystem
-alias files.usage='sudo fs_usage -e -f filesystem|grep -v CACHE_HIT|grep -v grep'
-# Files being opened
-alias files.open='sudo fs_usage -e -f filesystem|grep -v CACHE_HIT|grep -v grep|grep open'
-# Files in use in the Users directory
-alias files.usage.user='sudo fs_usage -e -f filesystem|grep -v CACHE_HIT|grep -v grep|grep Users'
+alias network.internalip="ifconfig en0 | egrep -o '([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)'"
 
 # Directory listings
 # LS_COLORS='no=01;37:fi=01;37:di=07;96:ln=01;36:pi=01;32:so=01;35:do=01;35:bd=01;33:cd=01;33:ex=01;31:mi=00;05;37:or=00;05;37:'
@@ -154,17 +81,75 @@ alias files.usage.user='sudo fs_usage -e -f filesystem|grep -v CACHE_HIT|grep -v
 alias ls='ls -G -h -p '
 alias ll='ls -l -G -h -p '
 
-# Restart Apache on Mac
-alias apacherestart="sudo /usr/sbin/apachectl restart"
+# Print each PATH entry on a separate line
+alias path='echo -e ${PATH//:/\\n}'
 
-#Personal Commands
-alias game.seek='txt="";for i in {1..20};do txt=$txt"$i. ";done;txt=$txt" Ready or not, here I come";say $txt'
+# Copy and paste and prune the usless newline
+alias pbcopynn='tr -d "\n" | pbcopy'
 
-#Git Tools
-# assumes git-up is installed (gem install git-up)
-# switches to 'develop' branch, updates all local branches (nicely using git-up), removes all local branches already merged into 'develop'
-alias gitdev='git checkout develop; git-up; git branch --merged develop | grep -v "\* develop" | xargs -n 1 git branch -d; git branch;'
+# firewall management
+alias port-forward-enable="echo 'rdr pass inet proto tcp from any to any port 2376 -> 127.0.0.1 port 2376' | sudo pfctl -ef -"
+alias port-forward-disable="sudo pfctl -F all -f /etc/pf.conf"
+alias port-forward-list="sudo pfctl -s nat"
 
-# node.js + io.js
-alias usenode='brew unlink iojs && brew link node && echo Using Node.js'
-alias useio='brew unlink node && brew link --force iojs && echo Using io.js'
+# push git repo, but first, use git-up to make sure you are in sync and rebased with the remote
+alias pushup="git-up && git push"
+# Set the extended MacOS attributes on a file such that Quicklook will open it as text
+alias qltext='xattr -wx com.apple.FinderInfo "54 45 58 54 21 52 63 68 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00" $1'
+#alias qltext2='osascript -e tell application "Finder" to set file type of ((POSIX file "$1") as alias) to "TEXT"'
+
+# Reload the shell (i.e. invoke as a login shell)
+alias reload="exec $SHELL -l"
+
+# Disable Spotlight
+alias spotoff="sudo mdutil -a -i off"
+# Enable Spotlight
+alias spoton="sudo mdutil -a -i on"
+
+# Get macOS Software Updates, and update installed Ruby gems, Homebrew, npm, and their installed packages
+alias update='sudo softwareupdate -i -a; brew update; brew upgrade; brew cleanup; mas upgrade; npm install npm -g; npm update -g; sudo gem update --system; sudo gem update; sudo gem cleanup'
+
+alias vtop="vtop --theme wizard"
+
+##########################################
+# Proxy Fun
+#########################################
+# Define our default proxy
+export proxy_url=http://3.166.220.15:3128
+export proxy_url2=http://cinproxy.glb.comfin.ge.com:80
+export proxy_url3=http://iss-americas-pitc-cincinnatiz.proxy.corporate.ge.com:80
+export proxy_url4=http://http-proxy.us.money.ge.com
+export proxy_url5=http://127.0.0.1:31114
+export proxy_url6=http://pitc-cin.cloud.health.ge.com:80/
+export proxy_url7=http://http-proxy.ha.health.ge.com:88/
+export proxy_url8=http://cis-americas-pitc-cinciz.proxy.corporate.ge.com:80
+export proxy_url9=http://proxy-src.research.ge.com:8080
+export proxy_url10=http://PITC-Zscaler-Americas-Cincinnati3PR.proxy.corporate.ge.com:80
+export proxy_url11=http://PITC-Zscaler-US-MilwaukeeZ.proxy.corporate.ge.com:9400
+export proxy_url12=http://PITC-Zscaler-US-Alpharetta3PR.proxy.corporate.ge.com:9400
+export proxy_url13=https://cloudproxy.setpac.ge.com/pac.pac
+
+# These aliases are used to check the proxy and turn it on and off
+# alias set_proxies="export VAGRANT_HTTP_PROXY=$proxy_url; export VAGRANT_HTTPS_PROXY=$proxy_url; export VAGRANT_NO_PROXY=$no_proxy"
+alias proxy="env |grep -E '_proxy|_PROXY'"
+alias proxyon_archops="export http_proxy=$proxy_url; export https_proxy=$proxy_url;export VAGRANT_HTTP_PROXY=$proxy_url; export VAGRANT_HTTPS_PROXY=$proxy_url;proxy"
+alias proxyon_cin="export http_proxy=$proxy_url2; export https_proxy=$proxy_url2;export VAGRANT_HTTP_PROXY=$proxy_url2; export VAGRANT_HTTPS_PROXY=$proxy_url2;proxy"
+alias proxyon_cin2="export http_proxy=$proxy_url3; export https_proxy=$proxy_url3;export VAGRANT_HTTP_PROXY=$proxy_url3; export VAGRANT_HTTPS_PROXY=$proxy_url3;proxy"
+alias proxyon_money="export http_proxy=$proxy_url4; export https_proxy=$proxy_url4;export VAGRANT_HTTP_PROXY=$proxy_url4; export VAGRANT_HTTPS_PROXY=$proxy_url4;proxy"
+alias proxyon_myapps="export http_proxy=$proxy_url5; export https_proxy=$proxy_url5;export VAGRANT_HTTP_PROXY=$proxy_url5; export VAGRANT_HTTPS_PROXY=$proxy_url5;proxy"
+alias proxyon_pitc="export http_proxy=$proxy_url6; export https_proxy=$proxy_url6;export VAGRANT_HTTP_PROXY=$proxy_url6; export VAGRANT_HTTPS_PROXY=$proxy_url6;proxy"
+alias proxyon_health="export http_proxy=$proxy_url7; export https_proxy=$proxy_url7;export VAGRANT_HTTP_PROXY=$proxy_url7; export VAGRANT_HTTPS_PROXY=$proxy_url7;proxy"
+alias proxyon_cis="export http_proxy=$proxy_url8; export https_proxy=$proxy_url8;export VAGRANT_HTTP_PROXY=$proxy_url8; export VAGRANT_HTTPS_PROXY=$proxy_url8;proxy"
+alias proxyon_research="export http_proxy=$proxy_url9; export https_proxy=$proxy_url9;export VAGRANT_HTTP_PROXY=$proxy_url9; export VAGRANT_HTTPS_PROXY=$proxy_url9;proxy"
+alias proxyon_pac="export http_proxy=$proxy_url13; export https_proxy=$proxy_url13;export VAGRANT_HTTP_PROXY=$proxy_url13; export VAGRANT_HTTPS_PROXY=$proxy_url13;proxy"
+
+#cloud proxies that work
+alias proxyon_pitcCIS="export http_proxy=$proxy_url10; export https_proxy=$proxy_url10;export VAGRANT_HTTP_PROXY=$proxy_url10; export VAGRANT_HTTPS_PROXY=$proxy_url10;proxy"
+alias proxyon_pitcMIL="export http_proxy=$proxy_url11; export https_proxy=$proxy_url11;export VAGRANT_HTTP_PROXY=$proxy_url11; export VAGRANT_HTTPS_PROXY=$proxy_url11;proxy"
+alias proxyon_pitcALPHA="export http_proxy=$proxy_url12; export https_proxy=$proxy_url12;export VAGRANT_HTTP_PROXY=$proxy_url12; export VAGRANT_HTTPS_PROXY=$proxy_url12;proxy"
+
+alias proxyoff="unset http_proxy; unset https_proxy; unset ftp_proxy; unset VAGRANT_HTTP_PROXY; unset VAGRANT_HTTPS_PROXY; unset VAGRANT_NO_PROXY"
+export no_proxy="localhost,127.0.0.1,.ge.com,minimart.corporate.ge.com,github.build.ge.com"
+export VAGRANT_NO_PROXY="$no_proxy"
+# default one to start is health proxy
+proxyon_health

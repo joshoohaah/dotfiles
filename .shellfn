@@ -1,24 +1,241 @@
 #########################################
 # Utility Functions
 
+function decode-authorization-failure-message {
+    if [ $# -ne 1 ] || [ "$1" = -h ] || [ "$1" = --help ]; then
+        cat <<'EOT'
+Usage: decode-authorization-failure-message <message>
+Use this when Amazon gives you an "Encoded authorization failure message" and
+you need to turn it into something readable.
+EOT
+        return 1
+    fi
+
+    aws sts decode-authorization-message --encoded-message "$1" |
+        jq '.["DecodedMessage"]' |
+        sed 's/\\"/"/g' |
+        sed 's/^"//' |
+        sed 's/"$//' |
+        jq
+}
+
+
+function bot() {
+  ESC_SEQ="\x1b["
+  echo
+  echo -e "$ESC_SEQ"32;01m\[._.]/$ESC_SEQ"39;49;00m - "$1
+}
+
+# Create a new git repo with one README commit and CD into it
+function gitnr() { mkdir $1; cd $1; git init; touch README; git add README; git commit -mFirst-commit;}
+
+# Do a Matrix movie effect of falling characters
+function matrix1() {
+echo -e "\e[1;40m" ; clear ; while :; do echo $LINES $COLUMNS $(( $RANDOM % $COLUMNS)) $(( $RANDOM % 72 )) ;sleep 0.05; done|gawk '{ letters="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()"; c=$4; letter=substr(letters,c,1);a[$3]=0;for (x in a) {o=a[x];a[x]=a[x]+1; printf "\033[%s;%sH\033[2;32m%s",o,x,letter; printf "\033[%s;%sH\033[1;37m%s\033[0;0H",a[x],x,letter;if (a[x] >= $1) { a[x]=0; } }}'
+}
+
+function matrix2() {
+echo -e "\e[1;40m" ; clear ; characters=$( jot -c 94 33 | tr -d '\n' ) ; while :; do echo $LINES $COLUMNS $(( $RANDOM % $COLUMNS)) $(( $RANDOM % 72 )) $characters ;sleep 0.05; done|gawk '{ letters=$5; c=$4; letter=substr(letters,c,1);a[$3]=0;for (x in a) {o=a[x];a[x]=a[x]+1; printf "\033[%s;%sH\033[2;32m%s",o,x,letter; printf "\033[%s;%sH\033[1;37m%s\033[0;0H",a[x],x,letter;if (a[x] >= $1) { a[x]=0; } }}'
+}
+
+# Use Mac OS Preview to open a man page in a more handsome format
+function manp() {
+  man -t $1 | open -f -a /Applications/Preview.app
+}
+
+# Show normally hidden system and dotfile types of files
+# in Mac OS Finder
+function showhiddenfiles() {
+  defaults write com.apple.Finder AppleShowAllFiles YES
+  osascript -e 'tell application "Finder" to quit'
+  sleep 0.25
+  osascript -e 'tell application "Finder" to activate'
+}
+
+# Hide (back to defaults) normally hidden system and dotfile types of files
+# in Mac OS Finder
+function hidehiddenfiles() {
+  defaults write com.apple.Finder AppleShowAllFiles NO
+  osascript -e 'tell application "Finder" to quit'
+  sleep 0.25
+  osascript -e 'tell application "Finder" to activate'
+}
+
+## hammer a service with curl for a given number of times
+## usage: curlhammer $url
+function curlhammer () {
+  bot "about to hammer $1 with $2 curls ⇒";
+  echo "curl -k -s -D - $1 -o /dev/null | grep 'HTTP/1.1' | sed 's/HTTP\/1.1 //'"
+  for i in {1..$2}
+  do
+    curl -k -s -D - $1 -o /dev/null | grep 'HTTP/1.1' | sed 's/HTTP\/1.1 //'
+  done
+  bot "done"
+}
+
+## curlheader will return only a specific response header or all response headers for a given URL
+## usage: curlheader $header $url
+## usage: curlheader $url
+function curlheader() {
+  if [[ -z "$2" ]]; then
+    echo "curl -k -s -D - $1 -o /dev/null"
+    curl -k -s -D - $1 -o /dev/null:
+  else
+    echo "curl -k -s -D - $2 -o /dev/null | grep $1:"
+    curl -k -s -D - $2 -o /dev/null | grep $1:
+  fi
+}
+
+## get the timings for a curl to a URL
+## usage: curltime $url
+function curltime(){
+  curl -w "   time_namelookup:  %{time_namelookup}\n\
+      time_connect:  %{time_connect}\n\
+   time_appconnect:  %{time_appconnect}\n\
+  time_pretransfer:  %{time_pretransfer}\n\
+     time_redirect:  %{time_redirect}\n\
+time_starttransfer:  %{time_starttransfer}\n\
+--------------------------\n\
+        time_total:  %{time_total}\n" -o /dev/null -s "$1"
+}
+
+function fixperms(){
+    find . \( -name "*.sh" -or -type d \) -exec chmod 755 {} \; && find . -type f ! -name "*.sh" -exec chmod 644 {} \;
+}
+
+# Create a new directory and enter it
+function mkd() {
+  mkdir -p "$@" && cd "$_";
+}
+
+# Generate Subresource Integrity hashes.
+# 1st argument is the filename.
+# 2nd argument, optional, is the hash algorithm
+# (currently the allowed prefixes are sha256, sha384, and sha512)
+# See http://www.w3.org/TR/SRI/ and
+# https://developer.mozilla.org/docs/Web/Security/Subresource_Integrity
+function sri() {
+  if [ -z "${1}" ]; then
+    echo "ERROR: No file specified.";
+    return 1;
+  fi;
+  local algorithm="${2:-sha512}"
+  if ! echo "${algorithm}" | egrep -q "^sha(256|384|512)$"; then
+    echo "ERROR: hash algorithm must be sha256, sha384 or sha512.";
+    return 1;
+  fi;
+  local filehash=$(openssl dgst "-${algorithm}" -binary "$1" | openssl base64 -A)
+  if [ -z "${filehash}" ]; then
+    return 1;
+  fi;
+  echo "${algorithm}-${filehash}";
+}
+
+## output directory/file tree, excluding ignorables
+function tre(){
+  tree -aC -I '.git|node_modules|bower_components|.DS_Store' --dirsfirst "$@"
+}
+
+## weather seattle
+function weather() {
+  curl wttr.in/$1
+}
+
+# outputs jenkins plugins in a readable list
+function jenkins_plugins(){
+  echo "${Gre}### Welcome to Josh's Jenkins Plugin finder ###${RCol}"
+  if [ "$1" != "" ]; then
+    echo "box script is attempting to retrieve from: $1"
+    jenkins_box=$1
+    output=`curl -sL http://$jenkins_box/pluginManager/api/xml\?depth\=1\&xpath\=/\*/\*/shortName\|/\*/\*/version\&wrapper\=plugins`
+    filteredoutput=`echo $output | sed s/'ion><'/'ion>\n<'/g | sed s/'<\/shortName><version>'/'@'/g |  sed s/'<\(.*\)plugins>'/''/g | sed s/'<shortName>'/''/g | sed s/'<\/version>'/''/g | sort`
+    echo "${Yel}$filteredoutput${RCol}"
+
+else
+    echo "${Red}no box specified!! Please specify the hostname of the jenkins machine you are trying to reach.${RCol}"
+fi
+}
+
+# echo $output | xmllint --format -
+# echo $output | sed s/'ion><'/'ion>\n<'/g | sort
+# echo $output | sed s/'ion><'/'ion>\n<'/g | sed s/'<\/shortName><version>'/'@'/g | sort | awk '/shortName/ {print $1}'
+# echo $output | sed s/'ion><'/'ion>\n<'/g | sed s/'<\/shortName><version>'/'@'/g |  sed s/'<shortName>'/''/g | sort
+# echo $output | xmllint --format - | sed s/'<*>'/''/g
+
+
+# promotes chef cookbooks to production
+function promote(){
+  echo "${Gre}### Logic checking of cookbooks and versions ###${RCol}"
+  if [ "$1" != "" ]; then
+    echo "version: $1"
+    ver=$1
+else
+    echo "no version specified..using metadata"
+    ver=$(cat metadata.rb | grep -w version | cut -d "'" -f2)
+    echo "metadata.rb version: $ver"
+fi
+
+  if [ "$2" != "" ]; then
+    echo "cookbook to be promoted: $2"
+    cookbook_name=$2
+else
+    echo "no cookbook specified..using current directory"
+    cookbook_name=$(basename `pwd`)
+fi
+  echo "${Cya}name of cookbook to be promoted: $cookbook_name${RCol}"
+  cd ~/healthcare-dev/cookbooks/$cookbook_name
+  echo $ver
+
+  echo "checkout out master branch & updating..."
+  git checkout master
+  git pull -p
+
+  echo "checking the tag version and metadata version match..."
+  metadata_ver=$(cat metadata.rb | grep -w version | cut -d "'" -f2)
+  echo "metadata version: $metadata_ver"
+  echo "proposed tag version: $ver"
+  if [ "${metadata_ver}" == "${ver}" ]; then
+    echo "they're the same! Promoting..."
+else
+    echo "they're not the same"
+    return
+fi
+echo -e "${Gre}### GIT TAG PUSH ###${RCol}"
+# setting variable with tag version
+tag_version="v$ver"
+echo "tag version: $tag_version"
+# tagging git repo
+git tag $tag_version
+# pushing tags to git repo
+git push --tags
+
+echo "${Cya}### Synchronizing cookbooks using berkshelf ###${RCol}"
+berks install && berks update && berks upload
+
+echo "${Cya}### Promoting cookbook to dcar_prod ###${RCol}"
+knife download /environments
+knife spork promote dcar_prod $cookbook_name --remote --yes
+}
+
 #will setup quick RDP tunnel for windows boxes in SCALR
 function rdp(){
 echo "Please enter IP address of box to RDP into: "
 read ipaddr
 echo "You entered: $ipaddr"
-port_no="9002"
+echo "what local port should we redirect to? (default 9002)"
+read port_no
 echo "Localhost port # for RDP: $port_no"
-ec2_jumpbox_ip="10.227.165.28"
+ec2_jumpbox_ip="10.227.160.212"
 echo "ec2 jumpbox IP address: $ec2_jumpbox_ip"
 ssh -L $port_no:$ipaddr:3389 gecloud@$ec2_jumpbox_ip
 }
 
 #will setup quick RDP tunnel for windows boxes in SCALR
 function rdp_me(){
-ipaddr="10.227.165.167"
+ipaddr="10.227.165.86"
 port_no="9008"
 echo "Attempting connection to $ipaddr box at port: $port_no"
-ec2_jumpbox_ip="10.227.165.28"
+ec2_jumpbox_ip="10.227.160.212"
 echo "ec2 jumpbox IP address: $ec2_jumpbox_ip"
 ssh -L $port_no:$ipaddr:3389 gecloud@$ec2_jumpbox_ip
 }
@@ -28,6 +245,7 @@ function keyrefresh-aws(){
   ## customize the following variables
 
 # setting for assumerole api call
+# name_for_this_session="502629092"
 name_for_this_session="212050466"
 
 # account that you want access to (will lead to error if you're not authorized)
@@ -35,6 +253,7 @@ account_no="164996153968"
 
 # role that you want access to (will lead to error if you're not authorized)
 my_approved_role="bu-poweruser"
+# my_approved_role=" hc/hc-cldarch"
 
 # how long will this token be valid for (min. 900, max. 3600)
 valid_seconds=${seconds:=3600}
@@ -87,51 +306,68 @@ AWS_SECRET_ACCESS_KEY=$aws_secret_access_key; export AWS_SECRET_ACCESS_KEY
 AWS_SESSION_TOKEN=$aws_session_token; export AWS_SESSION_TOKEN
 
 }
+function keyrefresh-aws-serviceuser(){
+  ## customize the following variables
 
-#____________________________===================_____________________
-#########################################
-# Utility Functions
+# setting for assumerole api call
+name_for_this_session="502629092"
+# name_for_this_session="212050466"
 
-# Create a new git repo with one README commit and CD into it
-function gitnr() { mkdir $1; cd $1; git init; touch README; git add README; git commit -mFirst-commit;}
+# account that you want access to (will lead to error if you're not authorized)
+account_no="164996153968"
 
-# Do a Matrix movie effect of falling characters
-function matrix1() {
-echo -e "\e[1;40m" ; clear ; while :; do echo $LINES $COLUMNS $(( $RANDOM % $COLUMNS)) $(( $RANDOM % 72 )) ;sleep 0.05; done|gawk '{ letters="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()"; c=$4; letter=substr(letters,c,1);a[$3]=0;for (x in a) {o=a[x];a[x]=a[x]+1; printf "\033[%s;%sH\033[2;32m%s",o,x,letter; printf "\033[%s;%sH\033[1;37m%s\033[0;0H",a[x],x,letter;if (a[x] >= $1) { a[x]=0; } }}'
-}
+# role that you want access to (will lead to error if you're not authorized)
+my_approved_role="bu-poweruser"
+# my_approved_role=" hc/hc-cldarch"
 
-function matrix2() {
-echo -e "\e[1;40m" ; clear ; characters=$( jot -c 94 33 | tr -d '\n' ) ; while :; do echo $LINES $COLUMNS $(( $RANDOM % $COLUMNS)) $(( $RANDOM % 72 )) $characters ;sleep 0.05; done|gawk '{ letters=$5; c=$4; letter=substr(letters,c,1);a[$3]=0;for (x in a) {o=a[x];a[x]=a[x]+1; printf "\033[%s;%sH\033[2;32m%s",o,x,letter; printf "\033[%s;%sH\033[1;37m%s\033[0;0H",a[x],x,letter;if (a[x] >= $1) { a[x]=0; } }}'
-}
+# how long will this token be valid for (min. 900, max. 3600)
+valid_seconds=${seconds:=3600}
 
-# Use Mac OSX Preview to open a man page in a more handsome format
-function manp() {
-  man -t $1 | open -f -a /Applications/Preview.app
-}
+#### should not need to edit below this line
+# the ARN for the role for which temporary token is to be generated
+# format:
+# arn_for_the_role="arn:aws:iam::TARGET_ACCOUNT_NO:role/TARGET_ROLE_NAME"
+arn_for_the_role="arn:aws:iam::${account_no}:role/${my_approved_role}"
 
-# Show normally hidden system and dotfile types of files
-# in Mac OSX Finder
-function showhiddenfiles() {
-  defaults write com.apple.finder AppleShowAllFiles YES; killall Finder /System/Library/CoreServices/Finder.app
-  }
+# optional: note the time at which keys were generated
+generated_at=$(date -u "+%Y-%m-%dT%H:%M:%S")
 
-# Hide (back to defaults) normally hidden system and dotfile types of files
-# in Mac OSX Finder
-function hidehiddenfiles() {
-defaults write com.apple.finder AppleShowAllFiles NO; killall Finder /System/Library/CoreServices/Finder.app
-}
+# call STS to get temporary creds
+temp_creds=$(aws sts assume-role \
+                 --role-arn $arn_for_the_role \
+                 --role-session-name $name_for_this_session \
+                 --duration-seconds $valid_seconds \
+                 --profile default \
+                 --output json)
 
-# kill all instances of a process by name
-function skill()
-{
-    sudo kill -9 `ps ax | grep $1 | grep -v grep | awk '{print $1}'`
-}
+# extract access and secret keys and session token from response
+# store in local shell vars
+aws_access_key_id=$(echo $temp_creds \
+                | jq '.Credentials.AccessKeyId' \
+                | sed -e 's/\"//g')
 
-function schef()
-{
-    sudo chef-client
-}
+aws_secret_access_key=$(echo $temp_creds \
+                    | jq '.Credentials.SecretAccessKey' \
+                    | sed -e 's/\"//g')
 
-function fixperms(){
-    find . \( -name "*.sh" -or -type d \) -exec chmod 755 {} \; && find . -type f ! -name "*.sh" -exec chmod 644 {} \;
+aws_session_token=$(echo $temp_creds \
+                 | jq '.Credentials.SessionToken' \
+                 | sed -e 's/\"//g')
+
+expires_at=$(echo $temp_creds \
+             | jq '.Credentials.Expiration'\
+             | sed -e 's/\"//g' -e 's/Z//')
+
+echo "generated at: $generated_at" && echo "expiring at: $expires_at"
+
+#Set the 3 temp. keys in credentials/config file for the 'temp' profile
+aws configure set AWS_ACCESS_KEY_ID $aws_access_key_id --profile temp
+aws configure set AWS_SECRET_ACCESS_KEY $aws_secret_access_key --profile temp
+aws configure set AWS_SESSION_TOKEN $aws_session_token --profile temp
+
+#updates environment vars
+AWS_ACCESS_KEY_ID=$aws_access_key_id; export AWS_ACCESS_KEY_ID
+AWS_SECRET_ACCESS_KEY=$aws_secret_access_key; export AWS_SECRET_ACCESS_KEY
+AWS_SESSION_TOKEN=$aws_session_token; export AWS_SESSION_TOKEN
+
 }
