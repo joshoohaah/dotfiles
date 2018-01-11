@@ -2,15 +2,18 @@ module.exports = {
   brew: [
     // http://conqueringthecommandline.com/book/ack_ag
     'ack',
+    'awscli',
     'ag',
     // Install GNU core utilities (those that come with macOS are outdated)
     // Don’t forget to add `$(brew --prefix coreutils)/libexec/gnubin` to `$PATH`.
     'coreutils',
+    'cowsay',
     'dos2unix',
     // Install GNU `find`, `locate`, `updatedb`, and `xargs`, `g`-prefixed
     'findutils',
     'fortune',
     'readline', // ensure gawk gets good readline
+    'git',
     'gawk',
     // http://www.lcdf.org/gifsicle/ (because I'm a gif junky)
     'gifsicle',
@@ -45,12 +48,17 @@ module.exports = {
   cask: [
     //'adium',
     //'amazon-cloud-drive',
-    //'atom',
-    // 'box-sync',
+    'atom',
+    'box-sync',
+    'chefdk',
     //'comicbooklover',
-    //'diffmerge',
+    // 'diffmerge',
     //'dropbox',
-    //'evernote',
+    'dashlane',
+    'evernote',
+    'flowdock',
+    'google-chrome',
+    'github-desktop',
     'gpgtools',
     //'ireadfast',
     'iterm2',
@@ -64,10 +72,15 @@ module.exports = {
     //'torbrowser',
     //'transmission',
     //'vlc',
+    'vagrant',
+    'virtualbox',
+    'virtualbox-extension-pack',
     'xquartz'
   ],
   gem: [
-    'git-up'
+    'git-up',
+    'lolcat',
+    'lolcommits'
   ],
   npm: [
     'antic',

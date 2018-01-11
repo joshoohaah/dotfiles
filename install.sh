@@ -264,6 +264,13 @@ require_nvm stable
 # always pin versions (no surprises, consistent dev/build machines)
 npm config set save-exact true
 
+################################################
+bot "aws/proxy setup"                     #
+################################################
+running "Copying AWS-tools"
+cp -r aws-tools ~/aws-tools
+
+
 #####################################
 # Now we can switch to node.js mode
 # for better maintainability and
