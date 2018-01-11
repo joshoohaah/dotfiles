@@ -6,7 +6,14 @@
 ###########################
 
 # include my library helpers for colorized echo and require_brew, etc
-source ./lib.sh
+source ./lib_sh/echos.sh
+source ./lib_sh/requirers.sh
+
+if [[ -z $1 ]]; then
+  error "you need to specify a backup folder date. Take a look in ~/.dotfiles_backup/ to see which backup date you wish to restore."
+  exit 1
+fi
+
 
 bot "Do you wish to change your shell back to bash?"
 read -r -p "[Y|n] " response
@@ -20,45 +27,26 @@ fi
 
 bot "Restoring dotfiles from backup..."
 
-pushd ~ > /dev/null 2>&1
+pushd ~/.dotfiles_backup/$1
 
-function updatedotfile {
+for file in .*; do
+  if [[ $file == "." || $file == ".." ]]; then
+    continue
+  fi
 
-    if [[ -e ~/$1 ]]; then
-        unlink $1;
-        echo -en "project dotfile $1 removed";ok
-    fi
+  running "~/$file"
+  if [[ -e ~/$file ]]; then
+      unlink $file;
+      echo -en "project dotfile $file unlinked";ok
+  fi
 
-    if [[ -e ~/.dotfiles_backup/$1 ]]; then
-        mv ~/.dotfiles_backup/$1 ./
-        echo -en "$1 backup restored";ok
-    fi
-}
+  if [[ -e ./$file ]]; then
+      mv ./$file ./
+      echo -en "$1 backup restored";ok
+  fi
+  echo -en '\done';ok
+done
 
-updatedotfile .crontab
-updatedotfile .gemrc
-updatedotfile .gitconfig
-updatedotfile .gitignore
-updatedotfile .profile
-updatedotfile .rvmrc
-updatedotfile .screenrc
-updatedotfile .shellaliases
-updatedotfile .shellfn
-updatedotfile .shellpaths
-updatedotfile .shellvars
-updatedotfile .vim
-updatedotfile .vim/autoload
-updatedotfile .vim/backup
-updatedotfile .vim/bundle
-updatedotfile .vim/colors
-updatedotfile .vim/temp
-updatedotfile .vim/.netrwhist
-updatedotfile .vimrc
-updatedotfile .zlogout
-updatedotfile .zprofile
-updatedotfile .zshenv
-updatedotfile .zshrc
-
-popd > /dev/null 2>&1
+popd
 
 bot "Woot! All done."

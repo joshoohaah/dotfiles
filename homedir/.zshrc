@@ -1,7 +1,5 @@
 # Path to your oh-my-zsh configuration.
 export ZSH=$HOME/.dotfiles/oh-my-zsh
-export EDITOR="atom -w"
-
 # if you want to use this, change your non-ascii font to Droid Sans Mono for Awesome
 # POWERLEVEL9K_MODE='awesome-patched'
 export ZSH_THEME="powerlevel9k/powerlevel9k"
@@ -55,8 +53,3 @@ unsetopt correct
 
 # run fortune on new terminal :)
 fortune
-eval "$(chef shell-init zsh)"
-# # Load rbenv automatically by appending
-# # the following to ~/.zshrc:
-
-# eval "$(rbenv init -)"
