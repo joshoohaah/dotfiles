@@ -91,3 +91,11 @@ node_modules
 .vim/backup/*
 .vim/temp/*
 .vim/.netrwhist
+homedir/.vim/bundle/vim-esformatter
+homedir/.vim/bundle/AnsiEsc.vim
+homedir/.vim/bundle/searchtasks.vim
+homedir/.vim/bundle/searchtasks.vim
+homedir/.vim/bundle/AnsiEsc.vim
+homedir/.vim/bundle/vim-esformatter
+homedir/.shellfn_personal
+.shellfn
