@@ -1,9 +1,9 @@
 [user]
-  name = GITHUBFULLNAME
-  email = GITHUBEMAIL
+	name = Schneider, Joshua P (Josh)
+	email = josh.schneider@ge.com
 [github]
   # https://github.com/blog/180-local-github-config
-  user = GITHUBUSER
+  user = joshschneider
 [color]
 # ui = true is a superset of all the more specific color options
 #  as documented at http://book.git-scm.com/5_customizing_git.html
@@ -47,7 +47,7 @@
   safecrlf = warn
   # prevent crlf (then you will have to deal with the problem -- dos2unix, etc)
   #safecrlf = true
-  editor = vim
+	editor = code --wait
   #editor = subl -w
 
 [alias]
@@ -55,7 +55,7 @@
   co = checkout
   d = diff --color-words
   cam = commit -a -m
-  upm = !git fetch upstream && git merge upstream/master
+  upm = !git fetch origin && git merge origin/master
 
   # least used
   br = branch -a
@@ -66,8 +66,8 @@
   dc = diff --staged
   dw = diff --word-diff
   dcw = diff --color-words
-  dm = !git diff | subl
-  dv = !git diff | vim
+  dm = !git diff | code
+  # dv = !git diff | vim
   who = shortlog -s --
   ph = push
   pl = pull
@@ -158,21 +158,21 @@
 [difftool]
   prompt = false
 
-[diff]
-  tool = vimdiff
+# [diff]
+#   tool = vimdiff
 
 [init]
   templatedir = ~/.dotfiles/.git_template
 
-[mergetool]
-  prompt = false
-  keepBackup = false
+# [mergetool]
+#   prompt = false
+#   keepBackup = false
 
-[merge]
-  tool = vimdiff
-  # Always show a diffstat at the end of a merge
-  stat = true
-  conflictstyle = diff3
+# [merge]
+# 	tool = vimdiff
+#   # Always show a diffstat at the end of a merge
+#   stat = true
+#   conflictstyle = diff3
 
 [branch]
     # Automatically set up pull to be --rebase
@@ -195,6 +195,7 @@
   smudge = git media smudge %f
 
 [filter "lfs"]
-  clean = git-lfs clean %f
-  smudge = git-lfs smudge %f
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
   required = true
+	process = git-lfs filter-process

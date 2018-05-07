@@ -38,6 +38,16 @@ Plugin 'airblade/vim-gitgutter'
 Plugin 'tpope/vim-surround'
 Plugin 'dkprice/vim-easygrep'
 Plugin 'editorconfig/editorconfig-vim'
+Plugin 'wesQ3/vim-windowswap'
+Plugin 'SirVer/ultisnips'
+Plugin 'junegunn/fzf.vim'
+Plugin 'junegunn/fzf'
+Plugin 'ctrlpvim/ctrlp.vim'
+Plugin 'benmills/vimux'
+Plugin 'jeetsukumaran/vim-buffergator'
+Plugin 'gilsondev/searchtasks.vim'
+Plugin 'Shougo/neocomplete.vim'
+
 " visual undo list
 Plugin 'sjl/gundo.vim'
 " Plugin 'majutsushi/tagbar'
@@ -52,6 +62,7 @@ Plugin 'digitaltoad/vim-pug'
 " Plugin 'SirVer/ultisnips'
 "Plugin 'sheerun/vim-polyglot'
 " plugins from http://vim-scripts.org/vim/scripts.html
+Plugin 'Townk/vim-autoclose'
 Plugin 'node.js'
 Plugin 'SuperTab'
 " Git plugin not hosted on GitHub
@@ -68,6 +79,14 @@ Plugin 'SuperTab'
 Plugin 'leafgarland/typescript-vim'
 " Vue.js
 Plugin 'posva/vim-vue'
+
+" Git Support
+Plugin 'kablamo/vim-git-log'
+Plugin 'gregsexton/gitv'
+
+" Theme stuff
+Plugin 'AnsiEsc.vim'
+Plugin 'ryanoasis/vim-devicons'
 
 " All of your Plugins must be added before the following line
 call vundle#end()            " required

@@ -51,5 +51,9 @@ load-nvmrc
 # Customize to your needs...
 unsetopt correct
 
+# integrate rbenv
+eval "$(rbenv init -)"
+
 # run fortune on new terminal :)
-fortune
+# fortune
+# fortune | cowsay -f tux | lolcat

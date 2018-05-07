@@ -5,6 +5,11 @@ export PATH=$PATH:.
 #Brew
 export PATH=/usr/local/sbin:$PATH
 export PATH=/usr/local/bin:$PATH
+export PATH=/opt/local/bin:$PATH
+
+# Ruby
+# eval "$(chef shell-init zsh)"
+
 
 # GO
 #export PATH=$PATH:/usr/local/opt/go/libexec/bin
@@ -14,3 +19,5 @@ export PATH=/usr/local/bin:$PATH
 
 # The next line enables shell command completion for gcloud.
 #source "/Users/$(whoami)/Downloads/google-cloud-sdk/completion.zsh.inc"
+
+eval "$(rbenv init -)"

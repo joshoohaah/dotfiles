@@ -1,6 +1,25 @@
 #########################################
 # Utility Functions
 
+function decode-authorization-failure-message {
+    if [ $# -ne 1 ] || [ "$1" = -h ] || [ "$1" = --help ]; then
+        cat <<'EOT'
+Usage: decode-authorization-failure-message <message>
+Use this when Amazon gives you an "Encoded authorization failure message" and
+you need to turn it into something readable.
+EOT
+        return 1
+    fi
+
+    aws sts decode-authorization-message --encoded-message "$1" |
+        jq '.["DecodedMessage"]' |
+        sed 's/\\"/"/g' |
+        sed 's/^"//' |
+        sed 's/"$//' |
+        jq
+}
+
+
 function bot() {
   ESC_SEQ="\x1b["
   echo
@@ -120,4 +139,240 @@ function tre(){
 ## weather seattle
 function weather() {
   curl wttr.in/$1
+}
+
+# outputs jenkins plugins in a readable list
+function jenkins_plugins(){
+  echo "${Gre}### Welcome to Josh's Jenkins Plugin finder ###${RCol}"
+  if [ "$1" != "" ]; then
+    printf '%s' 'Enter your SSO: ' 
+    read myusername
+    printf '%s' 'Enter your password: ' 
+    read -s mypassword
+    printf '\n'
+    echo "box script is attempting to retrieve from: $1"
+    jenkins_box=$1
+    output=`curl -sL http://$myusername:$mypassword@$jenkins_box/pluginManager/api/xml\?depth\=1\&xpath\=/\*/\*/shortName\|/\*/\*/version\&wrapper\=plugins`
+    filteredoutput=`echo $output | sed s/'ion><'/'ion>\n<'/g | sed s/'<\/shortName><version>'/'@'/g |  sed s/'<\(.*\)plugins>'/''/g | sed s/'<shortName>'/''/g | sed s/'<\/version>'/''/g | sort`
+    echo "${Yel}$filteredoutput${RCol}"
+
+else
+    echo "${Red}no box specified!! Please specify the hostname of the jenkins machine you are trying to reach.${RCol}"
+fi
+}
+
+# echo $output | xmllint --format -
+# echo $output | sed s/'ion><'/'ion>\n<'/g | sort
+# echo $output | sed s/'ion><'/'ion>\n<'/g | sed s/'<\/shortName><version>'/'@'/g | sort | awk '/shortName/ {print $1}'
+# echo $output | sed s/'ion><'/'ion>\n<'/g | sed s/'<\/shortName><version>'/'@'/g |  sed s/'<shortName>'/''/g | sort
+# echo $output | xmllint --format - | sed s/'<*>'/''/g
+
+
+# promotes chef cookbooks to production
+function promote(){
+  echo "${Gre}### Logic checking of cookbooks and versions ###${RCol}"
+  if [ "$1" != "" ]; then
+    echo "version: $1"
+    ver=$1
+else
+    echo "no version specified..using metadata"
+    ver=$(cat metadata.rb | grep -w version | cut -d "'" -f2)
+    echo "metadata.rb version: $ver"
+fi
+
+  if [ "$2" != "" ]; then
+    echo "cookbook to be promoted: $2"
+    cookbook_name=$2
+else
+    echo "no cookbook specified..using current directory"
+    cookbook_name=$(basename `pwd`)
+fi
+  echo "${Cya}name of cookbook to be promoted: $cookbook_name${RCol}"
+  cd ~/healthcare-dev/cookbooks/$cookbook_name
+  echo $ver
+
+  echo "checkout out master branch & updating..."
+  git checkout master
+  git pull -p
+
+  echo "checking the tag version and metadata version match..."
+  metadata_ver=$(cat metadata.rb | grep -w version | cut -d "'" -f2)
+  echo "metadata version: $metadata_ver"
+  echo "proposed tag version: $ver"
+  if [ "${metadata_ver}" == "${ver}" ]; then
+    echo "they're the same! Promoting..."
+else
+    echo "they're not the same"
+    return
+fi
+echo -e "${Gre}### GIT TAG PUSH ###${RCol}"
+# setting variable with tag version
+tag_version="v$ver"
+echo "tag version: $tag_version"
+# tagging git repo
+git tag $tag_version
+# pushing tags to git repo
+git push --tags
+
+echo "${Cya}### Synchronizing cookbooks using berkshelf ###${RCol}"
+berks install && berks update && berks upload
+
+echo "${Cya}### Promoting cookbook to dcar_prod ###${RCol}"
+knife download /environments
+knife spork promote dcar_prod $cookbook_name --remote --yes
+}
+
+#will setup quick RDP tunnel for windows boxes in SCALR
+function rdp(){
+echo "Please enter IP address of box to RDP into: "
+read ipaddr
+echo "You entered: $ipaddr"
+echo "what local port should we redirect to? (default 9002)"
+read port_no
+echo "Localhost port # for RDP: $port_no"
+ec2_jumpbox_ip="10.227.160.212"
+echo "ec2 jumpbox IP address: $ec2_jumpbox_ip"
+ssh -L $port_no:$ipaddr:3389 gecloud@$ec2_jumpbox_ip
+}
+
+#will setup quick RDP tunnel for windows boxes in SCALR
+function rdp_me(){
+ipaddr="10.227.165.86"
+port_no="9008"
+echo "Attempting connection to $ipaddr box at port: $port_no"
+ec2_jumpbox_ip="10.227.160.212"
+echo "ec2 jumpbox IP address: $ec2_jumpbox_ip"
+ssh -L $port_no:$ipaddr:3389 gecloud@$ec2_jumpbox_ip
+}
+
+#gets aws keys
+function keyrefresh-aws(){
+  ## customize the following variables
+
+# setting for assumerole api call
+# name_for_this_session="502629092"
+name_for_this_session="212050466"
+
+# account that you want access to (will lead to error if you're not authorized)
+account_no="164996153968"
+
+# role that you want access to (will lead to error if you're not authorized)
+my_approved_role="bu-poweruser"
+# my_approved_role=" hc/hc-cldarch"
+
+# how long will this token be valid for (min. 900, max. 3600)
+valid_seconds=${seconds:=3600}
+
+#### should not need to edit below this line
+# the ARN for the role for which temporary token is to be generated
+# format:
+# arn_for_the_role="arn:aws:iam::TARGET_ACCOUNT_NO:role/TARGET_ROLE_NAME"
+arn_for_the_role="arn:aws:iam::${account_no}:role/${my_approved_role}"
+
+# optional: note the time at which keys were generated
+generated_at=$(date -u "+%Y-%m-%dT%H:%M:%S")
+
+# call STS to get temporary creds
+temp_creds=$(aws sts assume-role \
+                 --role-arn $arn_for_the_role \
+                 --role-session-name $name_for_this_session \
+                 --duration-seconds $valid_seconds \
+                 --profile default \
+                 --output json)
+
+# extract access and secret keys and session token from response
+# store in local shell vars
+aws_access_key_id=$(echo $temp_creds \
+                | jq '.Credentials.AccessKeyId' \
+                | sed -e 's/\"//g')
+
+aws_secret_access_key=$(echo $temp_creds \
+                    | jq '.Credentials.SecretAccessKey' \
+                    | sed -e 's/\"//g')
+
+aws_session_token=$(echo $temp_creds \
+                 | jq '.Credentials.SessionToken' \
+                 | sed -e 's/\"//g')
+
+expires_at=$(echo $temp_creds \
+             | jq '.Credentials.Expiration'\
+             | sed -e 's/\"//g' -e 's/Z//')
+
+echo "generated at: $generated_at" && echo "expiring at: $expires_at"
+
+#Set the 3 temp. keys in credentials/config file for the 'temp' profile
+aws configure set AWS_ACCESS_KEY_ID $aws_access_key_id --profile temp
+aws configure set AWS_SECRET_ACCESS_KEY $aws_secret_access_key --profile temp
+aws configure set AWS_SESSION_TOKEN $aws_session_token --profile temp
+
+#updates environment vars
+AWS_ACCESS_KEY_ID=$aws_access_key_id; export AWS_ACCESS_KEY_ID
+AWS_SECRET_ACCESS_KEY=$aws_secret_access_key; export AWS_SECRET_ACCESS_KEY
+AWS_SESSION_TOKEN=$aws_session_token; export AWS_SESSION_TOKEN
+
+}
+function keyrefresh-aws-serviceuser(){
+  ## customize the following variables
+
+# setting for assumerole api call
+name_for_this_session="502629092"
+# name_for_this_session="212050466"
+
+# account that you want access to (will lead to error if you're not authorized)
+account_no="164996153968"
+
+# role that you want access to (will lead to error if you're not authorized)
+my_approved_role="bu-poweruser"
+# my_approved_role=" hc/hc-cldarch"
+
+# how long will this token be valid for (min. 900, max. 3600)
+valid_seconds=${seconds:=3600}
+
+#### should not need to edit below this line
+# the ARN for the role for which temporary token is to be generated
+# format:
+# arn_for_the_role="arn:aws:iam::TARGET_ACCOUNT_NO:role/TARGET_ROLE_NAME"
+arn_for_the_role="arn:aws:iam::${account_no}:role/${my_approved_role}"
+
+# optional: note the time at which keys were generated
+generated_at=$(date -u "+%Y-%m-%dT%H:%M:%S")
+
+# call STS to get temporary creds
+temp_creds=$(aws sts assume-role \
+                 --role-arn $arn_for_the_role \
+                 --role-session-name $name_for_this_session \
+                 --duration-seconds $valid_seconds \
+                 --profile default \
+                 --output json)
+
+# extract access and secret keys and session token from response
+# store in local shell vars
+aws_access_key_id=$(echo $temp_creds \
+                | jq '.Credentials.AccessKeyId' \
+                | sed -e 's/\"//g')
+
+aws_secret_access_key=$(echo $temp_creds \
+                    | jq '.Credentials.SecretAccessKey' \
+                    | sed -e 's/\"//g')
+
+aws_session_token=$(echo $temp_creds \
+                 | jq '.Credentials.SessionToken' \
+                 | sed -e 's/\"//g')
+
+expires_at=$(echo $temp_creds \
+             | jq '.Credentials.Expiration'\
+             | sed -e 's/\"//g' -e 's/Z//')
+
+echo "generated at: $generated_at" && echo "expiring at: $expires_at"
+
+#Set the 3 temp. keys in credentials/config file for the 'temp' profile
+aws configure set AWS_ACCESS_KEY_ID $aws_access_key_id --profile temp
+aws configure set AWS_SECRET_ACCESS_KEY $aws_secret_access_key --profile temp
+aws configure set AWS_SESSION_TOKEN $aws_session_token --profile temp
+
+#updates environment vars
+AWS_ACCESS_KEY_ID=$aws_access_key_id; export AWS_ACCESS_KEY_ID
+AWS_SECRET_ACCESS_KEY=$aws_secret_access_key; export AWS_SECRET_ACCESS_KEY
+AWS_SESSION_TOKEN=$aws_session_token; export AWS_SESSION_TOKEN
+
 }
