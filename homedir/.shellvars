@@ -33,6 +33,7 @@ export MYDEVAPPS=/Applications/Dev
 export FONTCONFIG_PATH=/opt/X11/lib/X11/fontconfig
 export NVM_DIR=~/.nvm
 export KITCHEN_YAML=.kitchen.yml
+export SSL_CERT_FILE=~/.ssh/cacert-vagrant.pem
 
 ### Colors to Vars ### {{{
 ## Inspired by http://wiki.archlinux.org/index.php/Color_Bash_Prompt#List_of_colors_for_prompt_and_Bash

@@ -56,14 +56,6 @@ alias game.seek='txt="";for i in {1..20};do txt=$txt"$i. ";done;txt=$txt" Ready 
 # switches to 'develop' branch, updates all local branches (nicely using git-up), removes all local branches already merged into 'develop'
 alias gitdev='git checkout develop; git-up; git branch --merged develop | grep -v "\* develop" | xargs -n 1 git branch -d; git branch;'
  
-# IP addresses
-alias ip="dig +short myip.opendns.com @resolver1.opendns.com"
-alias iplocal="ipconfig getifaddr en0"
-alias ips="ifconfig -a | grep -o 'inet6\? \(addr:\)\?\s\?\(\(\([0-9]\+\.\)\{3\}[0-9]\+\)\|[a-fA-F0-9:]\+\)' | awk '{ sub(/inet6? (addr:)? ?/, \"\"); print }'"
- 
-# Show active network interfaces
-alias ifactive="ifconfig | pcregrep -M -o '^[^\t:]+:([^\n]|\n\t)*status: active'"
- 
 # Show network connections
 # Often useful to prefix with SUDO to see more system level network usage
 alias network.connections='lsof -l -i +L -R -V'
@@ -71,6 +63,17 @@ alias network.established='lsof -l -i +L -R -V | grep ESTABLISHED'
 alias network.externalip='curl -s http://checkip.dyndns.org/ | sed "s/[a-zA-Z<>/ :]//g"'
 alias network.internalip="ifconfig en0 | egrep -o '([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)'"
  
+## General aliases
+alias cdb="cd -"
+alias c="clear"
+alias h="history"
+alias l="ls -alhT"
+alias l1="ls -A1 | _copy_and_print '\n'"
+alias p='pwd | tr -d "\r\n" | _copy_and_print'
+alias o="open"
+alias cat='ccat -G Keyword = "turquoise" -G Punctuation="green" -G Decimal="green" -G Type="blue" -G Literal="blue" -G String="lightgray" -G Plaintext="white"'
+alias home="cd $HOME"
+
 # Directory listings
 # LS_COLORS='no=01;37:fi=01;37:di=07;96:ln=01;36:pi=01;32:so=01;35:do=01;35:bd=01;33:cd=01;33:ex=01;31:mi=00;05;37:or=00;05;37:'
 # -G Add colors to ls
@@ -80,6 +83,16 @@ alias network.internalip="ifconfig en0 | egrep -o '([0-9]+\.[0-9]+\.[0-9]+\.[0-9
 alias ls='ls -G -h -p '
 alias ll='ls -l -G -h -p '
  
+# IP addresses
+alias ip="dig +short myip.opendns.com @resolver1.opendns.com"
+alias iplocal="ipconfig getifaddr en0"
+alias ips="ifconfig -a | grep -o 'inet6\? \(addr:\)\?\s\?\(\(\([0-9]\+\.\)\{3\}[0-9]\+\)\|[a-fA-F0-9:]\+\)' | awk '{ sub(/inet6? (addr:)? ?/, \"\"); print }'"
+ 
+# Show active network interfaces
+alias ifactive="ifconfig | pcregrep -M -o '^[^\t:]+:([^\n]|\n\t)*status: active'"
+ 
+
+
 # Print each PATH entry on a separate line
 alias path='echo -e ${PATH//:/\\n}'
  
@@ -107,9 +120,132 @@ alias spoton="sudo mdutil -a -i on"
  
 # Get macOS Software Updates, and update installed Ruby gems, Homebrew, npm, and their installed packages
 alias update='sudo softwareupdate -i -a; brew update; brew upgrade; brew cleanup; mas upgrade; npm install npm -g; npm update -g; gem update --system; gem update; gem cleanup'
- 
+
+alias hb="brew"
+alias hbi="brew install"
+alias hbin="brew info"
+alias hbu="brew uninstall"
+alias hbl="brew list"
+alias hbs="brew search"
+alias hbsw="brew switch"
+alias hbup="brew update"
+alias hbug="brew upgrade"
+alias hbp="brew pin"
+alias hbpu="brew unpin"
+alias hbd="brew doctor"
+alias hbc="brew cleanup"
+alias hbsu="brew update && brew upgrade --cleanup && brew cleanup"
+
+
 alias vtop="vtop --theme wizard"
- 
+
+## Git Aliases
+alias gi="git init"
+alias gcle="git config --local --edit"
+alias gcge="git config --global --edit"
+alias gcd="git config --show-origin"
+alias gget="git config --get"
+alias gset="git config --add"
+alias gst="git status --short --branch"
+alias gl='git log --graph --pretty=format:"$(_git_log_line_format)"'
+alias glh="_git_commit_last | _copy_and_print"
+alias glf='git fetch && git log --reverse --no-merges --pretty=format:"$(_git_log_line_format)" ..@{upstream}'
+alias glg='git log --pretty=format:"$(_git_log_line_format)" --grep'
+alias gls='git log --pretty=format:"$(_git_log_line_format)" -S'
+alias glt='git for-each-ref --sort=taggerdate --color --format="%(color:yellow)%(refname:short)%(color:reset)|%(taggerdate:short)|%(color:blue)%(color:bold)%(*authorname)%(color:reset)|%(subject)" refs/tags | column -s"|" -t'
+alias grl="git reflog"
+alias gg="git grep"
+alias guthors='git log --color --pretty=format:"%C(bold blue)%an%C(reset)" | sort | uniq -c | sort --reverse'
+alias gd="git diff"
+alias gdc="git diff --cached"
+alias gdm="git diff origin/master"
+alias gdw="git diff --color-words"
+alias gdo='git diff --name-only | uniq | xargs $EDITOR'
+alias gdt="git difftool"
+alias gdtc="git difftool --cached"
+alias gdtm="git difftool origin/master"
+alias glame="git blame -M -C -C -C"
+alias gbi="git bisect"
+alias gbis="git bisect start"
+alias gbib="git bisect bad"
+alias gbig="git bisect good"
+alias gbir="git bisect reset"
+alias gbisk="git bisect skip"
+alias gbil="git bisect log"
+alias gbire="git bisect replay"
+alias gbiv='git bisect visualize --reverse --pretty=format:"$(_git_log_line_format)"'
+alias gbih="git bisect help"
+alias gb="git branch --verbose"
+alias gbt="git show-branch --topics"
+alias gba="git branch --all"
+alias gbn="_git_branch_name | _copy_and_print"
+alias gbr="git branch --move"
+alias gm="git merge"
+alias gcl="git clone"
+alias gch="git checkout"
+alias gchm="git checkout master"
+alias ga="git add"
+alias gau="git add --update"
+alias gap="git add --patch"
+alias gall="git add --all ."
+alias gco="git commit"
+alias gce='cat .git/COMMIT_EDITMSG | ag --invert-match "^\#.*" | pbcopy'
+alias gatch="git commit --patch"
+alias gca="git commit --all"
+alias gcm="git commit --message"
+alias gcam="git commit --all --message"
+alias gcf="git commit --fixup"
+alias gcs="git commit --squash"
+alias gamend="git commit --amend"
+alias gamendh="git commit --amend --no-edit"
+alias gamenda="git commit --amend --all --no-edit"
+alias gcp="git cherry-pick"
+alias gcpa="git cherry-pick --abort"
+alias gashc="git stash clear"
+alias gnl="git notes list"
+alias gns="git notes show"
+alias gna="git notes add"
+alias gne="git notes edit"
+alias gnd="git notes remove"
+alias gnp="git notes prune"
+alias gf="git fetch"
+alias gpu="git pull"
+alias gpuo="git pull origin"
+alias gpuom="git pull origin master"
+alias grbc="git rebase --continue"
+alias grbd="git rebase --show-current-patch"
+alias grbs="git rebase --skip"
+alias grba="git rebase --abort"
+alias ger="git rerere"
+alias gp="git push"
+alias gpf="git push --force-with-lease"
+alias gpn="git push --no-verify"
+alias gpo="git push --set-upstream origin"
+alias gpr="git push review master"
+alias gps="git push stage stage:master"
+alias gpp="git push production production:master"
+alias gtag="git tag"
+alias gtagv="git tag --verify"
+alias gtags="git push --tags"
+alias gwl="git worktree list"
+alias gwp="git worktree prune"
+alias gr="git reset" # Unstage staged files for commit.
+alias grm="git reset --merge ORIG_HEAD" # Reset to original HEAD prior to merge.
+alias grom="git fetch --all && git reset --hard origin/master" # Reset local branch to origin/master branch. UNRECOVERABLE!
+alias gel="git rm"
+alias gelc="git rm --cached" # Removes previously tracked file from index after being added to gitignore.
+alias grev="git revert --no-commit"
+alias grp="git remote prune origin"
+alias glean="git clean -d --force"
+
+## Asciicinema shortcuts
+alias cin="asciinema"
+alias cina="asciinema rec --idle-time-limit 1 --append"
+alias cinc="asciinema cat"
+alias cinp="asciinema play"
+alias cinu="asciinema upload"
+
+
 ##########################################
 # Proxy Fun
 #########################################
@@ -137,7 +273,7 @@ alias proxyon_cin2="export http_proxy=$proxy_url3; export https_proxy=$proxy_url
 alias proxyon_money="export http_proxy=$proxy_url4; export https_proxy=$proxy_url4;export VAGRANT_HTTP_PROXY=$proxy_url4; export VAGRANT_HTTPS_PROXY=$proxy_url4;proxy"
 alias proxyon_myapps="export http_proxy=$proxy_url5; export https_proxy=$proxy_url5;export VAGRANT_HTTP_PROXY=$proxy_url5; export VAGRANT_HTTPS_PROXY=$proxy_url5;proxy"
 alias proxyon_pitc="export http_proxy=$proxy_url6; export https_proxy=$proxy_url6;export VAGRANT_HTTP_PROXY=$proxy_url6; export VAGRANT_HTTPS_PROXY=$proxy_url6;proxy"
-alias proxyon_health="export http_proxy=$proxy_url7; export https_proxy=$proxy_url7;export VAGRANT_HTTP_PROXY=$proxy_url7; export VAGRANT_HTTPS_PROXY=$proxy_url7;proxy"
+alias proxyon_health="export http_proxy=$proxy_url7; export https_proxy=$proxy_url7;export VAGRANT_HTTP_PROXY=$proxy_url7; export VAGRANT_HTTPS_PROXY=$proxy_url7; networksetup -setautoproxystate Wi-Fi on ;proxy"
 alias proxyon_cis="export http_proxy=$proxy_url8; export https_proxy=$proxy_url8;export VAGRANT_HTTP_PROXY=$proxy_url8; export VAGRANT_HTTPS_PROXY=$proxy_url8;proxy"
 alias proxyon_research="export http_proxy=$proxy_url9; export https_proxy=$proxy_url9;export VAGRANT_HTTP_PROXY=$proxy_url9; export VAGRANT_HTTPS_PROXY=$proxy_url9;proxy"
 alias proxyon_pac="export http_proxy=$proxy_url13; export https_proxy=$proxy_url13;export VAGRANT_HTTP_PROXY=$proxy_url13; export VAGRANT_HTTPS_PROXY=$proxy_url13;proxy"
@@ -147,8 +283,8 @@ alias proxyon_pitcCIS="export http_proxy=$proxy_url10; export https_proxy=$proxy
 alias proxyon_pitcMIL="export http_proxy=$proxy_url11; export https_proxy=$proxy_url11;export VAGRANT_HTTP_PROXY=$proxy_url11; export VAGRANT_HTTPS_PROXY=$proxy_url11;proxy"
 alias proxyon_pitcALPHA="export http_proxy=$proxy_url12; export https_proxy=$proxy_url12;export VAGRANT_HTTP_PROXY=$proxy_url12; export VAGRANT_HTTPS_PROXY=$proxy_url12;proxy"
  
-alias proxyoff="unset http_proxy; unset https_proxy; unset ftp_proxy; unset VAGRANT_HTTP_PROXY; unset VAGRANT_HTTPS_PROXY; unset VAGRANT_NO_PROXY"
-export no_proxy="localhost,127.0.0.1,.ge.com,minimart.corporate.ge.com,github.build.ge.com"
+alias proxyoff="unset http_proxy; unset https_proxy; unset ftp_proxy; unset VAGRANT_HTTP_PROXY; unset VAGRANT_HTTPS_PROXY; unset VAGRANT_NO_PROXY; networksetup -setautoproxystate Wi-Fi off"
+export no_proxy="localhost,127.0.0.1,.ge.com,minimart.corporate.ge.com,github.build.ge.com,cloud.health.ge.com"
 export VAGRANT_NO_PROXY="$no_proxy"
 # default one to start is health proxy
 proxyon_health
